@@ -1,11 +1,11 @@
 # ZOMSPAM - SERVER SPAMMER BOT
 
-***How to install: ***
+**How to install:**
 
-´´´bash
+```bash
 git clone https://github.com/zeliusd/zommc.git
 cd zommc
-npm install 
-´´´
+npm install``` 
+
 
 ![Image](./preview.jpg)
