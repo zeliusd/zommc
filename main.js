@@ -33,7 +33,6 @@ const titleArt = blessed.text({
   },
 });
 
-// Crear un menú principal
 const menu = blessed.list({
   top: 'center',
   left: 'center',
@@ -46,7 +45,7 @@ const menu = blessed.list({
     'Set Spam Message',
     'Set COUNT',
     'Set Bot Name',
-    'Double Register', // Nueva opción para verificar el servidor
+    'Double Register',
     'Exit',
   ],
   keys: true,
@@ -58,7 +57,6 @@ const menu = blessed.list({
   },
 });
 
-// Crear un input de texto (inicialmente oculto)
 const input = blessed.textbox({
   top: 'center',
   left: 'center',
@@ -79,17 +77,16 @@ const input = blessed.textbox({
   },
 });
 
-// Crear un cuadro de texto para mostrar los prints
 const logBox = blessed.box({
   top: 'center',
   left: 'center',
   width: '80%',
   height: '50%',
-  hidden: true, // Ocultar inicialmente
+  hidden: true,
   border: {
     type: 'line',
   },
-  scrollable: true, // Permitir desplazamiento
+  scrollable: true,
   keys: true,
   mouse: true,
   style: {
@@ -101,7 +98,6 @@ const logBox = blessed.box({
   },
 });
 
-// Crear un elemento de texto para mostrar el estado del bot
 const botStatus = blessed.text({
   bottom: 0,
   left: 0,
@@ -113,20 +109,15 @@ const botStatus = blessed.text({
   },
 });
 
-// Añadir elementos a la pantalla
 screen.append(titleArt);
 screen.append(menu);
 screen.append(input);
 screen.append(logBox);
 screen.append(botStatus);
 
-// Enfocar el menú inicialmente
 menu.focus();
-
-// Renderizar la pantalla
 screen.render();
 
-// Función para actualizar el estado del bot
 function updateBotStatus() {
   botStatus.setContent(
     `BOT CONFIG:\n` +
@@ -139,7 +130,6 @@ function updateBotStatus() {
   screen.render();
 }
 
-// Función para mostrar notificaciones
 function notification(content) {
   const message = blessed.message({
     parent: screen,
@@ -153,45 +143,40 @@ function notification(content) {
     },
   });
 
-  // Ocultar el mensaje después de 2 segundos
   setTimeout(() => {
     message.destroy();
     screen.render();
   }, 2000);
 }
 
-// Función para verificar si el servidor tiene doble registro
 function checkServerAuth(server, port) {
   return new Promise((resolve) => {
     const client = net.createConnection({ host: server, port }, () => {
       client.end();
-      resolve(false); // Si se conecta, no tiene doble registro
+      resolve(false);
     });
 
     client.on('error', (err) => {
-      resolve(true); // Si hay error, probablemente tiene doble registro
+      resolve(true);
     });
   });
 }
 
-// Función para redirigir los prints al cuadro de texto
 function redirectLogsToBox() {
   const originalLog = console.log;
   console.log = (message) => {
-    logBox.insertLine(0, message); // Agregar el mensaje al cuadro
+    logBox.insertLine(0, message);
     screen.render();
-    originalLog(message); // También imprimir en la consola original
+    originalLog(message);
   };
 }
 
-// Manejar la selección del menú
 menu.on('select', async (item, index) => {
   const selectedOption = item.content;
 
   if (selectedOption === 'Start Attack') {
-    // Mostrar el cuadro de logs y redirigir los prints
     logBox.show();
-    logBox.setContent(''); // Limpiar el contenido anterior
+    logBox.setContent('');
     redirectLogsToBox();
     generateBots(bot_config);
   } else if (selectedOption === 'Set IP ADDRESS') {
@@ -222,15 +207,13 @@ menu.on('select', async (item, index) => {
     input.show();
     input.focus();
     screen.render();
-
-  }else if(selectedOption === 'Double Register'){
-    if(!bot_config.doubleRegister){
-      notification("Doble register set up");
-    }else{
+  } else if (selectedOption === 'Double Register') {
+    if (!bot_config.doubleRegister) {
+      notification("Double register set up");
+    } else {
       notification("Single password register set up");
     }
-  } 
-  else if (selectedOption === 'Set Bot Name') {
+  } else if (selectedOption === 'Set Bot Name') {
     menu.hide();
     state = 4;
     input.setLabel('NAME:');
@@ -239,20 +222,19 @@ menu.on('select', async (item, index) => {
     screen.render();
   } else if (selectedOption === 'Check Server Auth') {
     if (!bot_config.server || !bot_config.port) {
-      notification('Primero configura la IP y el puerto.');
+      notification('First configure the IP and port.');
       return;
     }
 
     const hasAuth = await checkServerAuth(bot_config.server, bot_config.port);
-    notification(hasAuth ? 'El servidor tiene doble registro.' : 'El servidor no tiene doble registro.');
+    notification(hasAuth ? 'The server has double registration.' : 'The server does not have double registration.');
   } else if (selectedOption === 'Exit') {
     process.exit(0);
   } else {
-    notification(`Opción seleccionada: ${selectedOption}`);
+    notification(`Selected option: ${selectedOption}`);
   }
 });
 
-// Manejar la entrada de texto
 input.on('submit', (value) => {
   input.hide();
   input.clearValue();
@@ -262,27 +244,26 @@ input.on('submit', (value) => {
 
   if (state === 0) {
     bot_config.server = value;
-    notification(`IP ingresada: ${bot_config.server}`);
+    notification(`IP entered: ${bot_config.server}`);
   } else if (state === 1) {
     bot_config.port = parseInt(value, 10);
-    notification(`Puerto ingresado: ${bot_config.port}`);
+    notification(`Port entered: ${bot_config.port}`);
   } else if (state === 2) {
     bot_config.message = value;
-    notification(`Mensaje ingresado: ${bot_config.message}`);
+    notification(`Message entered: ${bot_config.message}`);
   } else if (state === 3) {
     bot_config.count = parseInt(value, 10);
-    notification(`Contador ingresado: ${bot_config.count}`);
+    notification(`Count entered: ${bot_config.count}`);
   } else if (state === 4) {
     bot_config.name = value;
-    notification(`Nombre del bot ingresado: ${bot_config.name}`);
-  }else {
-    notification('No se editó nada');
+    notification(`Bot name entered: ${bot_config.name}`);
+  } else {
+    notification('Nothing was edited');
   }
   state = -1;
   updateBotStatus();
 });
 
-// Manejar la tecla Escape para volver al menú
 input.key(['escape'], () => {
   input.hide();
   input.clearValue();
@@ -291,7 +272,6 @@ input.key(['escape'], () => {
   screen.render();
 });
 
-// Manejar la tecla Q para salir
 screen.key(['q', 'C-c'], () => {
   process.exit(0);
 });
