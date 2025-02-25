@@ -5,7 +5,8 @@
 ```bash
 git clone https://github.com/zeliusd/zommc.git
 cd zommc
-npm install``` 
+npm install
+``` 
 
 
 ![Image](./preview.jpg)
